@@ -1,12 +1,15 @@
 from AliOSS import OSS
 from argparse import ArgumentParser
 
-parser = ArgumentParser(description='阿里云OSS上传/下载文件，目录会被压缩成zip文件再上传')
-parser.add_argument('--internal', type=bool, default=False, help='是否使用阿里云内网地址')
+# Parse command-line arguments
+parser = ArgumentParser(
+    description='Upload/download files to/from Alibaba Cloud OSS; directories will be compressed into zip files before uploading.')
+parser.add_argument('--internal', type=bool, default=False,
+                    help='Whether to use the internal network address of Alibaba Cloud.')
 parser.add_argument('--mode', type=str, default='up',
-                    help='上传(upload)/下载(download)模式，默认为upload')
-parser.add_argument('--file_path', type=str, help='本地文件路径')
-parser.add_argument('--file_name', type=str, help='OSS文件名称')
+                    help='Upload (upload) / Download (download) mode; default is upload.')
+parser.add_argument('--file_path', type=str, help='Local file path.')
+parser.add_argument('--file_name', type=str, help='OSS file name.')
 args = parser.parse_args()
 
 if args.internal:
@@ -16,11 +19,11 @@ else:
 
 if "down" in args.mode.lower():
     if args.file_name is None:
-        raise Exception("下载模式下，必须指定文件名")
+        raise Exception("In download mode, the filename must be specified.")
     oss.download(args.file_name, args.file_path)
 elif "up" in args.mode.lower():
     if args.file_path is None:
-        raise Exception("上传模式下，必须指定文件路径")
+        raise Exception("In upload mode, the file path must be specified.")
     oss.upload(args.file_path, args.file_name)
 else:
-    raise Exception("mode参数错误")
+    raise Exception("Error in mode parameter.")
