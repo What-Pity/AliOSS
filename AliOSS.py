@@ -16,7 +16,7 @@ def _create_logger():
     logging.basicConfig(level=logging.WARNING,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    logger = logging.getLogger('my_logger')
+    logger = logging.getLogger('Ali OSS logger')
     logger.setLevel(logging.INFO)
     # Create a file handler
     file_handler = logging.FileHandler('OSS.log')
@@ -49,11 +49,43 @@ class OSS:
 
     @classmethod
     def virginia(cls):
+        cls.logger.info("Using VIRGINIA, USA External Network")
         return cls('https://oss-us-east-1.aliyuncs.com', "oversea-download", acc=True)
 
     @classmethod
     def virginia_internal(cls):
+        cls.logger.info("Using VIRGINIA, USA Internal Network")
         return cls('https://oss-us-east-1-internal.aliyuncs.com', "oversea-download", acc=True)
+
+    @classmethod
+    def guangzhou(cls):
+        cls.logger.info("Using GUANGZHOU External Network")
+        return cls('https://oss-cn-guangzhou.aliyuncs.com', 'china-download')
+
+    @classmethod
+    def guangzhou_internal(cls):
+        cls.logger.info("Using GUANGZHOU Internal Network")
+        return cls('https://oss-cn-guangzhou-internal.aliyuncs.com', 'china-download')
+
+    @classmethod
+    def beijing(cls):
+        cls.logger.info("Using BEIJING External Network")
+        return cls('https://oss-cn-beijing.aliyuncs.com', 'china-download-bj')
+
+    @classmethod
+    def beijing_internal(cls):
+        cls.logger.info("Using BEIJING Internal Network")
+        return cls('https://oss-cn-beijing-internal.aliyuncs.com', 'china-download-bj')
+
+    @classmethod
+    def jakarta(cls):
+        cls.logger.info("Using JAKARTA, INDONESIA External Network")
+        return cls('https://oss-ap-southeast-5.aliyuncs.com', 'china-download-bj')
+
+    @classmethod
+    def jakarta_internal(cls):
+        cls.logger.info("Using JAKARTA, INDONESIA Internal Network")
+        return cls('https://oss-ap-southeast-5-internal.aliyuncs.com', 'china-download-bj')
 
     def _list_buckets(self):
         # List all Buckets under the current account in all regions.
@@ -78,7 +110,8 @@ class OSS:
         if file_name is None:
             file_name = file_path.name
         # The determine_part_size method is used to determine the chunk size.
-        part_size = determine_part_size(total_size, preferred_size=100 * 1024)
+        part_size = determine_part_size(
+            total_size, preferred_size=1024 * 1024)
         upload_id = self.bucket.init_multipart_upload(file_name).upload_id
 
         parts = []
@@ -87,10 +120,11 @@ class OSS:
             part_number = 1
             offset = 0
             while offset < total_size:
+                percentage(offset, total_size)
                 num_to_upload = min(part_size, total_size - offset)
                 # Calling SizedFileAdapter(fileobj, size) generates a new file object, recalculating the starting append position.
-                result = self.bucket.upload_part(file_name, upload_id, part_number,
-                                                 SizedFileAdapter(fileobj, num_to_upload), progress_callback=percentage)
+                result = self.bucket.upload_part(
+                    file_name, upload_id, part_number, SizedFileAdapter(fileobj, num_to_upload))
                 parts.append(PartInfo(part_number, result.etag))
                 offset += num_to_upload
                 part_number += 1
@@ -115,6 +149,7 @@ class OSS:
             self.logger.warning(
                 f"{file_path} is a directory, automatically compressing to zip file")
             shutil.make_archive(str(file_path), "zip", str(file_path))
+            self.logger.info(f"Compressing {file_path} to {file_path}.zip")
             file_path = Path(str(file_path)+".zip")
         file_stats = file_path.stat()
         total_size = file_stats.st_size
@@ -140,16 +175,16 @@ class OSS:
             file_path = './'+file_name
         self.bucket.get_object_to_file(
             file_name, file_path, progress_callback=percentage)
-        print("\n")
+        # print("\n")
         self.logger.info(f"Downloaded {file_name} to {file_path}")
 
     def _download_multipart(self, file_name: str, file_path: Union[str, None] = None) -> None:
         # Multipart download
         if file_path is None:
             file_path = './'+file_name
+        oss2.defaults.connection_pool_size = 8
         oss2.resumable_download(self.bucket, file_name, file_path,
-                                progress_callback=percentage)
-        print("\n")
+                                progress_callback=percentage, store=oss2.ResumableDownloadStore(root='./'), part_size=1024*1024, num_threads=8)
         self.logger.info(f"Downloaded {file_name} to {file_path}")
 
     def download(self, file_name: str, file_path: Union[str, None] = None) -> None:
@@ -172,11 +207,25 @@ class OSS:
 
 def percentage(consumed_bytes, total_bytes):
     if total_bytes:
-        rate = int(100 * (float(consumed_bytes) / float(total_bytes)))
-        print('\r'+int(rate)*'='+'>'+'{0}% '.format(rate), end='')
+        rate = 100 * (float(consumed_bytes) / float(total_bytes))
+        consumed = approparate_byte(consumed_bytes)
+        total = approparate_byte(total_bytes)
+        print('\r'+int(rate)*'='+'>' +
+              '{0:.2f}%'.format(rate)+4*' '+'['+consumed+'/'+total+']', end='')
         sys.stdout.flush()
+        if rate == 100:
+            print('\n')
 
 
+def approparate_byte(byte):
+    if byte < 1024:
+        return '{0:.2f}B'.format(byte)
+    elif byte < 1024*1024:
+        return '{0:.2f}KB'.format(byte/1024)
+    elif byte < 1024*1024*1024:
+        return '{0:.2f}MB'.format(byte/1024/1024)
+    else:
+        return '{0:.2f}GB'.format(byte/1024/1024/1024)
 # def tqdm_percentage(consumed_bytes, total_bytes):
 #     if total_bytes:
 #         pbar = tqdm(total=total_bytes)

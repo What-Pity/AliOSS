@@ -1,2 +1,6 @@
 /OSS.log
 /__pycache__
+/export_env_val.sh
+/*.zip
+/*tmp*
+/.py-oss-download/
