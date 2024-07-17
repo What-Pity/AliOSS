@@ -1,0 +1,50 @@
+[
+    {
+        "name": "virginia",
+        "end_point": "https://oss-us-east-1.aliyuncs.com",
+        "bucket_name": "oversea-download",
+        "transfer_acceleration": true
+    },
+    {
+        "name": "virginia_internal",
+        "end_point": "https://oss-us-east-1-internal.aliyuncs.com",
+        "bucket_name": "oversea-download",
+        "transfer_acceleration": true
+    },
+    {
+        "name": "guangzhou",
+        "end_point": "https://oss-cn-guangzhou.aliyuncs.com",
+        "bucket_name": "china-download",
+        "transfer_acceleration": false
+    },
+    {
+        "name": "guangzhou_internal",
+        "end_point": "https://oss-cn-guangzhou-internal.aliyuncs.com",
+        "bucket_name": "china-download",
+        "transfer_acceleration": false
+    },
+    {
+        "name": "beijing",
+        "end_point": "https://oss-cn-beijing.aliyuncs.com",
+        "bucket_name": "china-download-bj",
+        "transfer_acceleration": false
+    },
+    {
+        "name": "beijing_internal",
+        "end_point": "https://oss-cn-beijing-internal.aliyuncs.com",
+        "bucket_name": "china-download-bj",
+        "transfer_acceleration": false
+    },
+    {
+        "name": "jakarta",
+        "end_point": "https://oss-ap-southeast-5.aliyuncs.com",
+        "bucket_name": "jakarta-indonesia",
+        "transfer_acceleration": true
+    },
+    {
+        "name": "jakarta_internal",
+        "end_point": "https://oss-ap-southeast-5-internal.aliyuncs.com",
+        "bucket_name": "jakarta-indonesia",
+        "transfer_acceleration": true
+    }
+]

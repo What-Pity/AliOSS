@@ -6,7 +6,7 @@ from oss2.models import PartInfo
 from pathlib import Path
 import logging
 import shutil
-from typing import Union
+from typing import Union, Optional
 
 # from tqdm import tqdm
 import sys
@@ -48,44 +48,15 @@ class OSS:
             self.logger.info("Using transfer acceleration")
 
     @classmethod
-    def virginia(cls):
-        cls.logger.info("Using VIRGINIA, USA External Network")
-        return cls('https://oss-us-east-1.aliyuncs.com', "oversea-download", acc=True)
-
-    @classmethod
-    def virginia_internal(cls):
-        cls.logger.info("Using VIRGINIA, USA Internal Network")
-        return cls('https://oss-us-east-1-internal.aliyuncs.com', "oversea-download", acc=True)
-
-    @classmethod
-    def guangzhou(cls):
-        cls.logger.info("Using GUANGZHOU External Network")
-        return cls('https://oss-cn-guangzhou.aliyuncs.com', 'china-download')
-
-    @classmethod
-    def guangzhou_internal(cls):
-        cls.logger.info("Using GUANGZHOU Internal Network")
-        return cls('https://oss-cn-guangzhou-internal.aliyuncs.com', 'china-download')
-
-    @classmethod
-    def beijing(cls):
-        cls.logger.info("Using BEIJING External Network")
-        return cls('https://oss-cn-beijing.aliyuncs.com', 'china-download-bj')
-
-    @classmethod
-    def beijing_internal(cls):
-        cls.logger.info("Using BEIJING Internal Network")
-        return cls('https://oss-cn-beijing-internal.aliyuncs.com', 'china-download-bj')
-
-    @classmethod
-    def jakarta(cls):
-        cls.logger.info("Using JAKARTA, INDONESIA External Network")
-        return cls('https://oss-ap-southeast-5.aliyuncs.com', 'china-download-bj')
-
-    @classmethod
-    def jakarta_internal(cls):
-        cls.logger.info("Using JAKARTA, INDONESIA Internal Network")
-        return cls('https://oss-ap-southeast-5-internal.aliyuncs.com', 'china-download-bj')
+    def connect_oss(cls, mode: str) -> Optional["OSS"]:
+        import json
+        with open("oss_info.json", "r") as f:
+            oss_info = json.load(f)
+            for info in oss_info:
+                if info["name"] == mode:
+                    cls.logger.info(f"Connected to {info['name']}")
+                    return cls(end_point=info["end_point"], bucket_name=info["bucket_name"], acc=info["transfer_acceleration"])
+            raise ValueError("Mode not found")
 
     def _list_buckets(self):
         # List all Buckets under the current account in all regions.
