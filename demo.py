@@ -11,26 +11,11 @@ parser.add_argument('--mode', type=str, default='up',
 parser.add_argument('--file_path', type=str, help='Local file path.')
 parser.add_argument('--file_name', type=str, help='OSS file name.')
 parser.add_argument('--target', type=str,
-                    help='guangzhou / virginia / beijing')
+                    help='guangzhou / virginia / beijing / jakarta, more details in `oss_info.py`')
 args = parser.parse_args()
 
-if args.target == "guangzhou":
-    if args.internal:
-        oss = OSS.guangzhou_internal()
-    else:
-        oss = OSS.guangzhou()
-elif args.target == "virginia":
-    if args.internal:
-        oss = OSS.virginia_internal()
-    else:
-        oss = OSS.virginia()
-elif args.target == "beijing":
-    if args.internal:
-        oss = OSS.beijing_internal()
-    else:
-        oss = OSS.beijing()
-else:
-    raise Exception("Error in target parameter.")
+target = args.target+"_internal" if args.internal else args.target
+oss = OSS.connect_oss(target)
 
 if "down" in args.mode.lower():
     if args.file_name is None:
